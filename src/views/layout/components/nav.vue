@@ -40,31 +40,20 @@
 </template>
 
 <script>
-import { reactive, ref,onMounted,computed,watch} from "@vue/composition-api";
-
+import  { mapState} from 'vuex'
 export default {
-  setup(props, { root }) {
-    let router = reactive(root.$router.options.routes);
-
-    const isCollapse = computed(() => {
-      return root.$store.state.app.isCollapse;
-    });
-
-    const defaultActive = computed(() => {
-      const { path } = root.$route;
+  data(){
+    return{
+      router:this.$router.options.routes,
+    }
+  },
+  computed:{
+    ...mapState('app',['isCollapse']),
+    defaultActive(){
+      const { path } = this.$route;
       return path;
-    });
-
-    // watch(()=>router,(newValue,oldvalue)=>{
-    //     console.log(newValue)
-    // })
-
-    return {
-      isCollapse,
-      router,
-      defaultActive
-    };
-  }
+    }
+  },
 };
 </script>
 

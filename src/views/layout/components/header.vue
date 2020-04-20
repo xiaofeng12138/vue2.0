@@ -8,7 +8,7 @@
       <div class="user-info">
         <img src="./img/avater.jpg" alt />
       </div>
-      <p>{{userName}}</p>
+      <p>{{user_Name}}</p>
       <div class="logout">
         <img src="./img/logout.png" alt @click="logout" />
       </div>
@@ -20,17 +20,20 @@
 import { getCookie, removeCookie, removeUsername } from "@/utils/cookie";
 import store from "@/store/index";
 import { reactive, ref, onMounted, computed } from "@vue/composition-api";
-export default {
-  setup(props, { root }) {
-    const changeStatus = () => {
-      root.$store.commit("app/SET_COLLAPSE");
-    };
-    const userName = computed(() => root.$store.state.app.user_Name);
-    // const userName = ref(root.$store.state.app.user_Name)
+import {mapState} from 'vuex'
 
-    const logout = () => {
-      root
-        .$confirm("确定要退出吗", "提示", {
+export default {
+  data(){
+    return{
+       
+    }
+  },
+  computed:{
+     ...mapState('app',['user_Name'])
+  },
+  methods:{
+    logout(){
+       this.$confirm("确定要退出吗", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           center: true
@@ -41,18 +44,15 @@ export default {
           store.commit("app/SET_TOKEN", ""); //清除store 里面的token
           store.commit("app/SET_USERNAME", ""); //清除store 里面的username
           store.commit("promission/SET_ROLES", []); //清除promission 里面的角色
-          root.$message.success("退出成功");
-          root.$router.push("/login");
+          this.$message.success("退出成功");
+          this.$router.push("/login");
         })
         .catch(() => {});
-    };
-
-    return {
-      userName,
-      changeStatus,
-      logout
-    };
-  }
+    },
+    changeStatus(){
+       this.$store.commit("app/SET_COLLAPSE");
+    }
+  },
 };
 </script>
 

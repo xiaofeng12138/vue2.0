@@ -7,7 +7,7 @@
           <div class="wrap-content">
             <el-row :gutter="16">
               <el-col :span="3">
-                <selectVue :config="data.selectConfig" :selectData.sync="data.selectData" />
+                <selectVue :config="selectConfig" :selectData.sync="selectData" />
                 <!-- <el-select v-model="data.selectValue">
                   <el-option
                     v-for="(item,index) in data.option"
@@ -18,7 +18,7 @@
                 </el-select>-->
               </el-col>
               <el-col :span="4">
-                <el-input v-model="data.inputVlue"></el-input>
+                <el-input v-model="inputVlue"></el-input>
               </el-col>
               <el-col :span="16">
                 <el-button type="danger" @click="search" v-if="showBtn('user:search')">搜索</el-button>
@@ -40,7 +40,7 @@
       </el-col>
     </el-row>
     <div style="margin-top:30px">
-      <tableVue :config="data.tableConfig" :tableRow.sync="data.tableRow" ref="tableFn">
+      <tableVue :config="tableConfig" :tableRow.sync="tableRow" ref="tableFn">
         <template v-slot:status="slotData">
           <el-switch
             @change="changeStatus(slotData.data)"
@@ -79,37 +79,28 @@
       :flag.sync="diaoValue"
       @close="fn"
       @referParentFn="referFn"
-      :editData.sync="data.editData"
+      :editData.sync="editData"
     />
-    <A aaa="111" bbb="2222" v-on:xfFn="XFGG" />
+    <!-- <A aaa="111" bbb="2222" v-on:xfFn="XFGG" /> -->
     <!-- <addUser :flag.sync="diaoValue" /> -->
   </div>
 </template>
 
 <script>
-import {
-  reactive,
-  ref,
-  onMounted,
-  computed,
-  watch,
-  provide
-} from "@vue/composition-api";
 import tableVue from "@c/table/index.vue";
 import selectVue from "@c/select/index.vue";
 import addUser from "./dialog/add";
 import { delUser, userActive, searchList } from "@/api/user";
-import { global } from "@/utils/global_3.x.js"; //导入全局函数 删除提示函数
+import { global } from "@/utils/global.js"; //导入全局函数 删除提示函数
 import EventBus from "@/utils/eventBus"; //引入事件车 中央事件
 import A from "./dialog/test/a";
+import { constants } from 'zlib';
 
 export default {
   components: { selectVue, tableVue, addUser, A },
-  setup(props, { root, refs }) {
-    provide("customVal", "我是父组件向子组件传递的值");
-    const { confirm } = global(); //导出global里面定义的函数
-    const diaoValue = ref(false); //控制弹出框是否显示
-    const data = reactive({
+  data(){
+    return{
+      diaoValue:false,
       selectData: {}, //下拉框存值
       editData: {}, //编辑数据所储存的内容
       tableRow: {}, //删除选中的id
@@ -163,106 +154,93 @@ export default {
         ]
       },
       inputVlue: ""
-    });
-    // const fnn = () => {
-    //   EventBus.$emit("showFn", { a: 11111 });
-    // };
-    const XFGG = () => {
-      console.log("这是一个孙子组件调用父组件的方法");
-    };
+    }
+  },
+  methods:{
 
-    const del = params => {
-      data.tableRow.rowId = [params.id];
-      confirm({
+    //删除函数
+     del(params){
+       this.tableRow.rowId = [params.id];
+      this.confirm({
         content: "是否确认删除当前选中的用户！！",
-        fn: confirmFn
+        fn: this.confirmFn
       });
-    };
+     },
 
-    /*
+     /*
      编辑
     */
-    const handerEdit = params => {
-      diaoValue.value = true;
-      data.editData = Object.assign({}, params);
-    };
+   handerEdit(params){
+      this.diaoValue = true;
+      this.editData = Object.assign({}, params);
+   },
 
-    //批量删除函数
-    const removeAll = () => {
-      if (!data.tableRow.rowId || data.tableRow.rowId.length == 0) {
-        root.$message.error("请选择需要删除的用户！！！");
+   /**
+    * 批量删除函数
+   */
+    removeAll(){
+       if (!this.tableRow.rowId || this.tableRow.rowId.length == 0) {
+        this.$message.error("请选择需要删除的用户！！！");
         return false;
       }
-      confirm({
+      this.confirm({
         content: "是否确认删除当前选中的用户！！",
-        fn: confirmFn
+        fn: this.confirmFn
       });
-    };
+    },
 
-    const confirmFn = () => {
-      delUser({ id: data.tableRow.rowId }).then(res => {
+    /**
+     * 删除确认函数
+    */
+   confirmFn(){
+     delUser({ id: this.tableRow.rowId }).then(res => {
         if (res.data.resCode == 0) {
-          root.$message.success("删除成功");
-          referFn();
+          this.$message.success("删除成功");
+          this.referFn();
         } else {
-          root.$message.error("删除失败");
+          this.$message.error("删除失败");
         }
       });
-    };
-    //用户是否启用函数
-    const changeStatus = params => {
-      if (data.handerUserSwitch) {
+   },
+
+   //用户是否启用函数
+    changeStatus(params){
+       if (this.handerUserSwitch) {
         return false;
       }
-      data.handerUserSwitch = true;
-
+      this.handerUserSwitch = true;
       userActive({ id: params.id, status: params.status })
         .then(r => {
           if (r.data.resCode == 0) {
-            root.$message.success(r.data.message);
-            data.handerUserSwitch = !data.handerUserSwitch;
+            this.$message.success(r.data.message);
+            this.handerUserSwitch = !this.handerUserSwitch;
           } else {
-            root.$message.error("修改失败");
+            this.$message.error("修改失败");
           }
         })
         .catch(err => {
-          data.handerUserSwitch = !data.handerUserSwitch;
-          console.log(err);
+          this.handerUserSwitch = !this.handerUserSwitch;
         });
-    };
-
+    },
     //刷新数据请求函数
-    const referFn = () => {
-      refs.tableFn.callbackUserTable(); //回调子组件的方法
-    };
+    referFn(){
+       this.$refs.tableFn.callbackUserTable(); //回调子组件的方法
+    },
 
     //搜索函数
-    const search = () => {
-      console.log(data.selectData.value);
-      let requestData = {
-        [data.selectData.value]: data.inputVlue
+    search(){
+      console.log(this.selectData);
+        let requestData = {
+        [this.selectData.value]: this.inputVlue
       };
-      refs.tableFn.paramsLoadData(requestData);
-    };
+      console.log(requestData)
+      this.$refs.tableFn.paramsLoadData(requestData);
+    },
+    fn(){
 
-    //关闭弹窗函数
-    const fn = val => {
-      console.log(val);
-    };
-    return {
-      data,
-      del,
-      diaoValue,
-      fn,
-      removeAll,
-      confirmFn,
-      XFGG,
-      referFn,
-      changeStatus,
-      handerEdit,
-      search
-    };
-  }
+    }
+  },
+  
 };
 </script>
 

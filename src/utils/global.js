@@ -9,13 +9,9 @@ export default {
                 cancelButtonText: '取消',
                 center: true
               }).then(() => {
-                // console.log(params.fn)
-                // root.$message.success('删除成功');
                 params.fn &&  params.fn(params.id)
-               
               }).catch(() => {
               });
-
         }
     }
 }

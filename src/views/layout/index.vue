@@ -7,25 +7,28 @@
 </template>
 
 <script>
-import {reactive,ref,onMounted,computed} from '@vue/composition-api'
 import Header from './components/header'
 import Main from './components/main'
 import Nav from './components/nav'
+import { mapState} from 'vuex'
 export default {
     components:{
        Header, Main,Nav
     },
-    setup(props, {root}){
-         const isCollapse = computed(()=>{
-         return root.$store.state.app.isCollapse
-       });
+    data(){
+        return{
 
-      return {
-          isCollapse,
-      }
+        }
+    },
+    computed:{
+        ...mapState('app' ,['isCollapse'])
 
 
-    }
+        //方法一：
+        // isCollapse(){
+        //    return this.$store.state.app.isCollapse 
+        // }
+    },
     
 }
 </script>
